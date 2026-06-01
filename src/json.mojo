@@ -379,7 +379,11 @@ def _to_json(v: Value, indent: Int, level: Int, mut out: List[UInt8]) raises:
             out.append(_b("{"))
             out.append(_b("}"))
             return
-        var order = _sorted_indices(v.c[].keys)
+        # Preserve insertion order to match transformers.apply_chat_template,
+        # which configures jinja2's tojson with sort_keys=False (the real target,
+        # requirements §1/§12 #4). NOTE: this diverges from the current conformance
+        # reference (vanilla jinja2, sort_keys=True) — the reference is to be
+        # re-oriented to transformers semantics as a follow-up.
         out.append(_b("{"))
         for k in range(n):
             if k > 0:
@@ -388,10 +392,10 @@ def _to_json(v: Value, indent: Int, level: Int, mut out: List[UInt8]) raises:
                     out.append(UInt8(0x20))
             if indent > 0:
                 _indent_newline(indent, level + 1, out)
-            _json_string(v.c[].keys[order[k]], out)
+            _json_string(v.c[].keys[k], out)
             out.append(_b(":"))
             out.append(UInt8(0x20))
-            _to_json(v.c[].vals[order[k]], indent, level + 1, out)
+            _to_json(v.c[].vals[k], indent, level + 1, out)
         if indent > 0:
             _indent_newline(indent, level, out)
         out.append(_b("}"))

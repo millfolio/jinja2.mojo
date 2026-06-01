@@ -257,7 +257,9 @@ def _norm_slice(
 def _eval_unary(mut env: Env, node: ExprNode) raises -> Value:
     var op = node.sval
     if op == "not":
-        var v = _req(eval_expr(env, node.kids[][0]))
+        # boolean context: undefined is falsy (matches transformers / jinja's
+        # default Undefined), so `not undefined` == True — don't _req here.
+        var v = eval_expr(env, node.kids[][0])
         return Value.bool(not v.truthy())
     var v = _req(eval_expr(env, node.kids[][0]))
     if op == "-":
@@ -270,12 +272,14 @@ def _eval_unary(mut env: Env, node: ExprNode) raises -> Value:
 def _eval_binop(mut env: Env, node: ExprNode) raises -> Value:
     var op = node.sval
     if op == "and":
-        var lv = _req(eval_expr(env, node.kids[][0]))
+        # boolean context: undefined is falsy, no _req (jinja short-circuit
+        # returns the operand: `undefined and x` -> undefined).
+        var lv = eval_expr(env, node.kids[][0])
         if not lv.truthy():
             return lv
         return eval_expr(env, node.kids[][1])
     if op == "or":
-        var lv = _req(eval_expr(env, node.kids[][0]))
+        var lv = eval_expr(env, node.kids[][0])
         if lv.truthy():
             return lv
         return eval_expr(env, node.kids[][1])

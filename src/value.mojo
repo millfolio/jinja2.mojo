@@ -1,4 +1,4 @@
-"""minja2 value model + helpers.
+"""jinja2.mojo value model + helpers.
 
 `Value` is a tagged union covering the type model required by the chat-template
 surface (requirements §5.3): undefined, none, bool, int, float, string, list,

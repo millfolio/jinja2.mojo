@@ -1,4 +1,4 @@
-"""CLI bridge the conformance runner shells out to (minja2).
+"""CLI bridge the conformance runner shells out to (jinja2.mojo).
 
 Reads a JSON job from `argv[1]`:
     {"template": "<source>", "context": {<vars>}, "now_epoch": <int>}
@@ -31,7 +31,7 @@ def _write_file(path: String, content: String) raises:
 def main():
     var args = argv()
     if len(args) < 3:
-        print("usage: minja2 <job.json> <out>")
+        print("usage: jinja2 <job.json> <out>")
         exit(2)
 
     var job_path = String(args[1])

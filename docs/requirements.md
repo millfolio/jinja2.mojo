@@ -1,4 +1,4 @@
-# minja2 — Requirements
+# jinja2.mojo — Requirements
 
 A Mojo implementation of the Jinja2 subset needed to **render the chat templates
 shipped in modern instruct-tuned LLM tokenizer configs**, byte-identically to
@@ -11,7 +11,7 @@ nothing is speculative.
 
 ## 1. Purpose and scope
 
-### What minja2 is
+### What jinja2.mojo is
 
 A focused Jinja2 implementation in Mojo whose **only** job is to take
 
@@ -213,7 +213,7 @@ The conformance runner (and the eventual Mojo caller) provides these:
 | `tools_in_user_message`   | bool         | optional (defaults set inside template)    | Llama-3.2:5 |
 | `date_string`             | string       | optional (template synthesizes via `strftime_now`) | Llama-3.2:8 |
 
-Templates frequently `is defined`-guard these — minja2 must distinguish
+Templates frequently `is defined`-guard these — jinja2.mojo must distinguish
 **"name not bound at all"** from **"name bound to `none`"**.
 
 Note that mapping keys may legitimately be missing on individual messages
@@ -231,7 +231,7 @@ installs into the env. Templates depend on them existing:
 - **`raise_exception(msg: string) -> never`** — abort rendering with `msg`.
   Used at Gemma:1 (`'System role not supported'`,
   `'Conversation roles must alternate ...'`), Llama-3.2:52, 72, Mistral:18,
-  62, 81. minja2 must surface this as an error to the Mojo caller, carrying
+  62, 81. jinja2.mojo must surface this as an error to the Mojo caller, carrying
   the message.
 - **`strftime_now(fmt: string) -> string`** — current UTC time formatted with
   `strftime` codes (Llama-3.2:10 uses `"%d %b %Y"`). Hostable as a callable;
@@ -255,7 +255,7 @@ The engine needs first-class internal representations of:
 - **Undefined sentinel** — what an unbound name or missing attribute resolves
   to. `is defined` returns False on it; **any other use raises** (`StrictUndefined`).
 
-Templates pass Python-shaped data through; minja2's host API must accept Mojo
+Templates pass Python-shaped data through; jinja2.mojo's host API must accept Mojo
 values that round-trip cleanly into and out of these.
 
 ## 6. Whitespace handling
@@ -335,7 +335,7 @@ Open design questions to settle during implementation, not in this doc:
 
 ## 9. Conformance methodology
 
-The byte-equality test is the only signal that minja2 is correct. Methodology:
+The byte-equality test is the only signal that jinja2.mojo is correct. Methodology:
 
 1. **Corpus**: every `.jinja` under `tests/fixtures/chat_templates/`. New
    model families are added by running `tests/fetch_reference_templates.py
@@ -347,7 +347,7 @@ The byte-equality test is the only signal that minja2 is correct. Methodology:
    - `strftime_now` (returns `datetime.utcnow().strftime(fmt)`)
    - `namespace` (the `jinja2.utils.Namespace` class)
 
-3. **Under test**: `minja2.Template.compile(source).render(context)`.
+3. **Under test**: `jinja2.Template.compile(source).render(context)`.
 
 4. **Context corpus** — for every template, render at least:
    - one-shot user (`[{role: user, content: ...}]`)
@@ -359,7 +359,7 @@ The byte-equality test is the only signal that minja2 is correct. Methodology:
    - where the template supports it: assistant turn with `tool_calls`, tool
      response turn, `tools` list passed in
 
-5. **Assertion**: `reference_bytes == minja2_bytes` for every (template,
+5. **Assertion**: `reference_bytes == jinja2_bytes` for every (template,
    context) pair. Any mismatch is a bug — investigate, fix, add a focused
    unit test.
 
@@ -402,14 +402,14 @@ per-request. A single-user millrace serves at most a few requests per second.
 So:
 
 - **Compile once, render many.** The caller (millrace) already caches a
-  per-model tokenizer; minja2 should let callers cache a per-model compiled
+  per-model tokenizer; jinja2.mojo should let callers cache a per-model compiled
   `Template`. No internal cache needed.
 - **Allocations** are not the bottleneck at this scale; emphasize
   correctness and clear errors over raw throughput.
 - **No need for SIMD-accelerated parsing or compiled-bytecode evaluation** in
   v1. A clean tree-walk evaluator is fine.
 
-If minja2 later gets used for something other than chat templates (e.g.
+If jinja2.mojo later gets used for something other than chat templates (e.g.
 high-throughput log formatting), revisit. Until then, optimize for getting
 byte-equality right and shipping.
 

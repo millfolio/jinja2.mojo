@@ -33,24 +33,61 @@ comptime S_SET: UInt8 = 4  # sval=name, exprs[0]=value
 comptime S_SETATTR: UInt8 = 5  # sval=ns, sval2=attr, exprs[0]=value
 
 
+# ── ArcPointer-of-List wrappers ───────────────────────────────────────────────
+# b3 tightened `ArcPointer[T: Movable & ImplicitlyDeletable]`; a recursive
+# `ArcPointer[List[X]]` no longer proves List's *conditional* trait conformance
+# through the recursion. Wrapping each `List[X]` in a tiny struct with
+# *unconditionally* declared traits and storing `ArcPointer[Wrapper]` restores
+# the same ref-counted sharing while satisfying the bound. Access the list via
+# `.items`.
+struct ExprNodeList(Copyable, Movable):
+    var items: List[ExprNode]
+
+    def __init__(out self, var items: List[ExprNode]):
+        self.items = items^
+
+    def __init__(out self):
+        self.items = List[ExprNode]()
+
+
+struct StmtNodeList(Copyable, Movable):
+    var items: List[StmtNode]
+
+    def __init__(out self, var items: List[StmtNode]):
+        self.items = items^
+
+    def __init__(out self):
+        self.items = List[StmtNode]()
+
+
+struct StringList(Copyable, Movable):
+    var items: List[String]
+
+    def __init__(out self, var items: List[String]):
+        self.items = items^
+
+    def __init__(out self):
+        self.items = List[String]()
+
+
 struct ExprNode(Copyable, Movable, ImplicitlyCopyable):
     var kind: UInt8
     var sval: String
     var ival: Int
     var line: Int
-    var kids: ArcPointer[List[ExprNode]]
-    var kwnames: ArcPointer[List[String]]
+    var kids: ArcPointer[ExprNodeList]
+    var kwnames: ArcPointer[StringList]
 
     def __init__(out self, kind: UInt8):
         self.kind = kind
         self.sval = String()
         self.ival = 0
         self.line = 0
-        self.kids = ArcPointer[List[ExprNode]](List[ExprNode]())
-        self.kwnames = ArcPointer[List[String]](List[String]())
+        self.kids = ArcPointer[ExprNodeList](ExprNodeList())
+        self.kwnames = ArcPointer[StringList](StringList())
 
     def add(mut self, var child: ExprNode):
-        self.kids[].append(child^)
+        self.kids[].items.append(child^)
 
 
 def e_int(x: Int, line: Int) -> ExprNode:
@@ -93,9 +130,9 @@ struct StmtNode(Copyable, Movable, ImplicitlyCopyable):
     var sval2: String
     var ival: Int
     var line: Int
-    var exprs: ArcPointer[List[ExprNode]]
-    var body: ArcPointer[List[StmtNode]]
-    var body2: ArcPointer[List[StmtNode]]
+    var exprs: ArcPointer[ExprNodeList]
+    var body: ArcPointer[StmtNodeList]
+    var body2: ArcPointer[StmtNodeList]
 
     def __init__(out self, kind: UInt8):
         self.kind = kind
@@ -103,6 +140,6 @@ struct StmtNode(Copyable, Movable, ImplicitlyCopyable):
         self.sval2 = String()
         self.ival = 0
         self.line = 0
-        self.exprs = ArcPointer[List[ExprNode]](List[ExprNode]())
-        self.body = ArcPointer[List[StmtNode]](List[StmtNode]())
-        self.body2 = ArcPointer[List[StmtNode]](List[StmtNode]())
+        self.exprs = ArcPointer[ExprNodeList](ExprNodeList())
+        self.body = ArcPointer[StmtNodeList](StmtNodeList())
+        self.body2 = ArcPointer[StmtNodeList](StmtNodeList())

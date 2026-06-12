@@ -147,7 +147,7 @@ def eval_expr(mut env: Env, node: ExprNode) raises -> Value:
             return Value.callable(node.sval)
         return Value.undef()
     if k == E_ATTR:
-        var obj = eval_expr(env, node.kids[][0])
+        var obj = eval_expr(env, node.kids[].items[0])
         return _get_attr(obj, node.sval)
     if k == E_SUBSCRIPT:
         return _eval_subscript(env, node)
@@ -178,8 +178,8 @@ def _get_attr(obj: Value, name: String) raises -> Value:
 
 
 def _eval_subscript(mut env: Env, node: ExprNode) raises -> Value:
-    var obj = _req(eval_expr(env, node.kids[][0]))
-    var idx = _req(eval_expr(env, node.kids[][1]))
+    var obj = _req(eval_expr(env, node.kids[].items[0]))
+    var idx = _req(eval_expr(env, node.kids[].items[1]))
     if obj.tag == VLIST:
         var i = _num_int(idx)
         var n = len(obj.c[].vals)
@@ -206,17 +206,17 @@ def _eval_subscript(mut env: Env, node: ExprNode) raises -> Value:
 
 
 def _eval_slice(mut env: Env, node: ExprNode) raises -> Value:
-    var obj = _req(eval_expr(env, node.kids[][0]))
+    var obj = _req(eval_expr(env, node.kids[].items[0]))
     var has_start = (node.ival & 1) != 0
     var has_end = (node.ival & 2) != 0
     var ci = 1
     var start = 0
     var end = 0
     if has_start:
-        start = _num_int(_req(eval_expr(env, node.kids[][ci])))
+        start = _num_int(_req(eval_expr(env, node.kids[].items[ci])))
         ci += 1
     if has_end:
-        end = _num_int(_req(eval_expr(env, node.kids[][ci])))
+        end = _num_int(_req(eval_expr(env, node.kids[].items[ci])))
 
     if obj.tag == VLIST:
         var n = len(obj.c[].vals)
@@ -259,9 +259,9 @@ def _eval_unary(mut env: Env, node: ExprNode) raises -> Value:
     if op == "not":
         # boolean context: undefined is falsy (matches transformers / jinja's
         # default Undefined), so `not undefined` == True — don't _req here.
-        var v = eval_expr(env, node.kids[][0])
+        var v = eval_expr(env, node.kids[].items[0])
         return Value.bool(not v.truthy())
-    var v = _req(eval_expr(env, node.kids[][0]))
+    var v = _req(eval_expr(env, node.kids[].items[0]))
     if op == "-":
         if v.tag == VFLOAT:
             return Value.float(-v.f)
@@ -274,26 +274,26 @@ def _eval_binop(mut env: Env, node: ExprNode) raises -> Value:
     if op == "and":
         # boolean context: undefined is falsy, no _req (jinja short-circuit
         # returns the operand: `undefined and x` -> undefined).
-        var lv = eval_expr(env, node.kids[][0])
+        var lv = eval_expr(env, node.kids[].items[0])
         if not lv.truthy():
             return lv
-        return eval_expr(env, node.kids[][1])
+        return eval_expr(env, node.kids[].items[1])
     if op == "or":
-        var lv = eval_expr(env, node.kids[][0])
+        var lv = eval_expr(env, node.kids[].items[0])
         if lv.truthy():
             return lv
-        return eval_expr(env, node.kids[][1])
+        return eval_expr(env, node.kids[].items[1])
 
     if op == "in" or op == "not in":
-        var left = _req(eval_expr(env, node.kids[][0]))
-        var right = _req(eval_expr(env, node.kids[][1]))
+        var left = _req(eval_expr(env, node.kids[].items[0]))
+        var right = _req(eval_expr(env, node.kids[].items[1]))
         var found = _membership(left, right)
         if op == "not in":
             found = not found
         return Value.bool(found)
 
-    var l = _req(eval_expr(env, node.kids[][0]))
-    var r = _req(eval_expr(env, node.kids[][1]))
+    var l = _req(eval_expr(env, node.kids[].items[0]))
+    var r = _req(eval_expr(env, node.kids[].items[1]))
     if op == "==":
         return Value.bool(values_equal(l, r))
     if op == "!=":
@@ -401,7 +401,7 @@ def _membership(left: Value, right: Value) raises -> Bool:
 
 
 def _eval_test(mut env: Env, node: ExprNode) raises -> Value:
-    var v = eval_expr(env, node.kids[][0])  # tolerate undefined
+    var v = eval_expr(env, node.kids[].items[0])  # tolerate undefined
     var name = node.sval
     var res: Bool
     if name == "defined":
@@ -429,14 +429,14 @@ def _eval_test(mut env: Env, node: ExprNode) raises -> Value:
 
 def _eval_filter(mut env: Env, node: ExprNode) raises -> Value:
     var name = node.sval
-    var inp = _req(eval_expr(env, node.kids[][0]))
+    var inp = _req(eval_expr(env, node.kids[].items[0]))
     if name == "tojson":
         var indent = 0
-        for k in range(len(node.kwnames[])):
-            if node.kwnames[][k] == "indent":
+        for k in range(len(node.kwnames[].items)):
+            if node.kwnames[].items[k] == "indent":
                 # kwarg values are stored after positional args
                 var vi = 1 + node.ival + k
-                indent = _num_int(_req(eval_expr(env, node.kids[][vi])))
+                indent = _num_int(_req(eval_expr(env, node.kids[].items[vi])))
         return Value.safe_string(to_json(inp, indent))  # jinja returns Markup
     if name == "trim":
         return Value.string(_trim(inp.s))
@@ -475,9 +475,9 @@ def _eval_filter(mut env: Env, node: ExprNode) raises -> Value:
 
 def _selectattr(mut env: Env, node: ExprNode, inp: Value) raises -> Value:
     # selectattr(attr, op, value); only "equalto"/"eq" observed
-    var attr = _req(eval_expr(env, node.kids[][1])).s
-    var op = _req(eval_expr(env, node.kids[][2])).s
-    var target = _req(eval_expr(env, node.kids[][3]))
+    var attr = _req(eval_expr(env, node.kids[].items[1])).s
+    var op = _req(eval_expr(env, node.kids[].items[2])).s
+    var target = _req(eval_expr(env, node.kids[].items[3]))
     var out = List[Value]()
     for i in range(len(inp.c[].vals)):
         var item = inp.c[].vals[i]
@@ -495,26 +495,26 @@ def _selectattr(mut env: Env, node: ExprNode, inp: Value) raises -> Value:
 
 
 def _eval_call(mut env: Env, node: ExprNode) raises -> Value:
-    var callee = node.kids[][0]
+    var callee = node.kids[].items[0]
     if callee.kind == E_NAME:
         var name = callee.sval
         if name == "raise_exception":
-            var msg = _to_str(_req(eval_expr(env, node.kids[][1])))
+            var msg = _to_str(_req(eval_expr(env, node.kids[].items[1])))
             env.user_error = True
             env.user_msg = msg
             raise Error(msg)
         if name == "strftime_now":
-            var fmt = _req(eval_expr(env, node.kids[][1])).s
+            var fmt = _req(eval_expr(env, node.kids[].items[1])).s
             return Value.string(strftime_utc(env.now_epoch, fmt))
         if name == "namespace":
             var ns = Value.mapping()
-            for k in range(len(node.kwnames[])):
+            for k in range(len(node.kwnames[].items)):
                 var vi = 1 + node.ival + k
-                ns.map_set(node.kwnames[][k], eval_expr(env, node.kids[][vi]))
+                ns.map_set(node.kwnames[].items[k], eval_expr(env, node.kids[].items[vi]))
             return ns
         raise Error("'" + name + "' is not callable")
     if callee.kind == E_ATTR and callee.sval == "items":
-        var obj = _req(eval_expr(env, callee.kids[][0]))
+        var obj = _req(eval_expr(env, callee.kids[].items[0]))
         if obj.tag != VMAP:
             raise Error("items() on non-mapping")
         var out = List[Value]()
@@ -538,16 +538,16 @@ def exec_stmt(mut env: Env, node: StmtNode) raises:
     if k == S_TEXT:
         env.emit(node.sval)
     elif k == S_OUTPUT:
-        var v = eval_expr(env, node.exprs[][0])
+        var v = eval_expr(env, node.exprs[].items[0])
         env.emit(v.to_output())
     elif k == S_IF:
-        var c = _req(eval_expr(env, node.exprs[][0]))
+        var c = _req(eval_expr(env, node.exprs[].items[0]))
         if c.truthy():
-            exec_stmts(env, node.body[])
+            exec_stmts(env, node.body[].items)
         else:
-            exec_stmts(env, node.body2[])
+            exec_stmts(env, node.body2[].items)
     elif k == S_SET:
-        var v = eval_expr(env, node.exprs[][0])
+        var v = eval_expr(env, node.exprs[].items[0])
         env.set_local(node.sval, v)
     elif k == S_SETATTR:
         var holder = env.get(node.sval)
@@ -556,13 +556,13 @@ def exec_stmt(mut env: Env, node: StmtNode) raises:
         var obj = holder.value()
         if obj.tag != VMAP:
             raise Error("cannot set attribute on non-namespace")
-        obj.map_set(node.sval2, eval_expr(env, node.exprs[][0]))
+        obj.map_set(node.sval2, eval_expr(env, node.exprs[].items[0]))
     elif k == S_FOR:
         _exec_for(env, node)
 
 
 def _exec_for(mut env: Env, node: StmtNode) raises:
-    var iter_v = _req(eval_expr(env, node.exprs[][0]))
+    var iter_v = _req(eval_expr(env, node.exprs[].items[0]))
     if iter_v.tag != VLIST:
         raise Error("for-loop target is not iterable")
     var has_filter = node.ival == 1
@@ -572,7 +572,7 @@ def _exec_for(mut env: Env, node: StmtNode) raises:
         for k in range(len(iter_v.c[].vals)):
             env.push()
             _bind_targets(env, node, iter_v.c[].vals[k])
-            var keep = _req(eval_expr(env, node.exprs[][1])).truthy()
+            var keep = _req(eval_expr(env, node.exprs[].items[1])).truthy()
             env.pop()
             if keep:
                 items.append(iter_v.c[].vals[k])
@@ -582,7 +582,7 @@ def _exec_for(mut env: Env, node: StmtNode) raises:
 
     var n = len(items)
     if n == 0:
-        exec_stmts(env, node.body2[])
+        exec_stmts(env, node.body2[].items)
         return
     for k in range(n):
         env.push()
@@ -594,7 +594,7 @@ def _exec_for(mut env: Env, node: StmtNode) raises:
         loop.map_set("index", Value.int(k + 1))
         loop.map_set("length", Value.int(n))
         env.set_local("loop", loop)
-        exec_stmts(env, node.body[])
+        exec_stmts(env, node.body[].items)
         env.pop()
 
 

@@ -287,7 +287,7 @@ struct ExprParser(Copyable, Movable):
         self._expect_op(")")
         for k in range(len(kwvals)):
             node.add(kwvals[k])
-            node.kwnames[].append(kwnames[k])
+            node.kwnames[].items.append(kwnames[k])
         return npos
 
     def _call(mut self, var callee: ExprNode) raises -> ExprNode:
@@ -424,7 +424,7 @@ struct TemplateParser(Copyable, Movable):
             elif seg.kind == SEG_OUTPUT:
                 var n = StmtNode(S_OUTPUT)
                 n.line = seg.line
-                n.exprs[].append(parse_expression(seg.text, seg.line))
+                n.exprs[].items.append(parse_expression(seg.text, seg.line))
                 out.append(n^)
                 self.pos += 1
             else:  # SEG_STMT
@@ -454,20 +454,20 @@ struct TemplateParser(Copyable, Movable):
         self.pos += 1  # consume if/elif
         var node = StmtNode(S_IF)
         node.line = seg.line
-        node.exprs[].append(parse_expression(cond_src, seg.line))
+        node.exprs[].items.append(parse_expression(cond_src, seg.line))
         var stop = List[String]()
         stop.append("elif")
         stop.append("else")
         stop.append("endif")
-        node.body[] = self._statements(stop)
+        node.body[].items = self._statements(stop)
         var kw = self._kw()
         if kw == "elif":
-            node.body2[].append(self._parse_if())  # nested; consumes endif
+            node.body2[].items.append(self._parse_if())  # nested; consumes endif
         elif kw == "else":
             self.pos += 1
             var stop2 = List[String]()
             stop2.append("endif")
-            node.body2[] = self._statements(stop2)
+            node.body2[].items = self._statements(stop2)
             self.pos += 1  # endif
         else:  # endif
             self.pos += 1
@@ -492,21 +492,21 @@ struct TemplateParser(Copyable, Movable):
         if not p._is_name("in"):
             raise Error("expected 'in' in for-loop at line " + String(seg.line))
         p._advance()
-        node.exprs[].append(p.parse())  # stops at trailing 'if' (a NAME)
+        node.exprs[].items.append(p.parse())  # stops at trailing 'if' (a NAME)
         if p._is_name("if"):
             p._advance()
             node.ival = 1
-            node.exprs[].append(p.parse())
+            node.exprs[].items.append(p.parse())
         var stop = List[String]()
         stop.append("endfor")
         stop.append("else")
-        node.body[] = self._statements(stop)
+        node.body[].items = self._statements(stop)
         var kw = self._kw()
         if kw == "else":
             self.pos += 1
             var stop2 = List[String]()
             stop2.append("endfor")
-            node.body2[] = self._statements(stop2)
+            node.body2[].items = self._statements(stop2)
         self.pos += 1  # endfor
         return node^
 
@@ -527,13 +527,13 @@ struct TemplateParser(Copyable, Movable):
             node.line = seg.line
             node.sval = name
             node.sval2 = attr
-            node.exprs[].append(p.parse())
+            node.exprs[].items.append(p.parse())
             return node^
         p._expect_op("=")
         var node = StmtNode(S_SET)
         node.line = seg.line
         node.sval = name
-        node.exprs[].append(p.parse())
+        node.exprs[].items.append(p.parse())
         return node^
 
 

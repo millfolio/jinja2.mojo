@@ -10,6 +10,6 @@ build = "mojo build src/main.mojo -o build/jinja2"
 conformance = "python tests/test_conformance.py"
 
 [dependencies]
-mojo = "==1.0.0b3.dev2026061206"
+mojo = "==1.0.0b3.dev2026062206"
 python = ">=3.11"
 jinja2 = "*"

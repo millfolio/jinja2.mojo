@@ -59,6 +59,9 @@ struct StmtNodeList(Copyable, Movable):
     def __init__(out self):
         self.items = List[StmtNode]()
 
+    def __del__(deinit self):
+        pass
+
 
 struct StringList(Copyable, Movable):
     var items: List[String]

@@ -7,9 +7,12 @@ platforms = ["osx-arm64"]
 
 [tasks]
 build = "mojo build src/main.mojo -o build/jinja2"
+# Unit suite: value/json helpers + end-to-end template rendering (src is the
+# include root — `from json/value/template import …` resolve against src/).
+test = "mkdir -p build && mojo build tests/unit_test.mojo -I src -o build/jinja2-test && ./build/jinja2-test"
 conformance = "python tests/test_conformance.py"
 
 [dependencies]
-mojo = "==1.0.0b3.dev2026062206"
+mojo = "==1.0.0b3.dev2026062706"
 python = ">=3.11"
 jinja2 = "*"

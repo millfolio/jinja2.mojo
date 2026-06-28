@@ -73,7 +73,7 @@ struct StringList(Copyable, Movable):
         self.items = List[String]()
 
 
-struct ExprNode(Copyable, Movable, ImplicitlyCopyable):
+struct ExprNode(Copyable, ImplicitlyCopyable, Movable):
     var kind: UInt8
     var sval: String
     var ival: Int
@@ -127,7 +127,7 @@ def e_name(var s: String, line: Int) -> ExprNode:
     return n
 
 
-struct StmtNode(Copyable, Movable, ImplicitlyCopyable):
+struct StmtNode(Copyable, ImplicitlyCopyable, Movable):
     var kind: UInt8
     var sval: String
     var sval2: String

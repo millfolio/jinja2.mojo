@@ -64,7 +64,9 @@ struct ExprParser(Copyable, Movable):
         return self.toks[self.pos]
 
     def _is_op(self, s: String) -> Bool:
-        return self.toks[self.pos].kind == T_OP and self.toks[self.pos].sval == s
+        return (
+            self.toks[self.pos].kind == T_OP and self.toks[self.pos].sval == s
+        )
 
     def _is_name(self, s: String) -> Bool:
         return (
@@ -397,7 +399,9 @@ struct TemplateParser(Copyable, Movable):
         self.pos = 0
 
     def _kw(self) raises -> String:
-        return _first_keyword(self.segs[self.pos].text, self.segs[self.pos].line)
+        return _first_keyword(
+            self.segs[self.pos].text, self.segs[self.pos].line
+        )
 
     def parse(mut self) raises -> List[StmtNode]:
         var empty = List[String]()
@@ -462,7 +466,9 @@ struct TemplateParser(Copyable, Movable):
         node.body[].items = self._statements(stop)
         var kw = self._kw()
         if kw == "elif":
-            node.body2[].items.append(self._parse_if())  # nested; consumes endif
+            node.body2[].items.append(
+                self._parse_if()
+            )  # nested; consumes endif
         elif kw == "else":
             self.pos += 1
             var stop2 = List[String]()

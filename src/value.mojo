@@ -46,7 +46,7 @@ def _empty() -> ArcPointer[Container]:
     return ArcPointer[Container](Container())
 
 
-struct Value(Copyable, Movable, ImplicitlyCopyable):
+struct Value(Copyable, ImplicitlyCopyable, Movable):
     var tag: UInt8
     var b: Bool
     var i: Int

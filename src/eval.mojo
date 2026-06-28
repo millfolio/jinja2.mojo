@@ -45,7 +45,13 @@ from ast import (
     S_SET,
     S_SETATTR,
 )
-from json import to_json, string_to_bytes, bytes_to_string, _utf8_decode, _utf8_encode
+from json import (
+    to_json,
+    string_to_bytes,
+    bytes_to_string,
+    _utf8_decode,
+    _utf8_encode,
+)
 from strftime import strftime_utc
 
 
@@ -510,7 +516,10 @@ def _eval_call(mut env: Env, node: ExprNode) raises -> Value:
             var ns = Value.mapping()
             for k in range(len(node.kwnames[].items)):
                 var vi = 1 + node.ival + k
-                ns.map_set(node.kwnames[].items[k], eval_expr(env, node.kids[].items[vi]))
+                ns.map_set(
+                    node.kwnames[].items[k],
+                    eval_expr(env, node.kids[].items[vi]),
+                )
             return ns
         raise Error("'" + name + "' is not callable")
     if callee.kind == E_ATTR and callee.sval == "items":
@@ -656,7 +665,12 @@ def _one_byte(c: UInt8) -> List[UInt8]:
 
 def _ws(c: Int) -> Bool:
     return (
-        c == 0x20 or c == 0x09 or c == 0x0A or c == 0x0D or c == 0x0C or c == 0x0B
+        c == 0x20
+        or c == 0x09
+        or c == 0x0A
+        or c == 0x0D
+        or c == 0x0C
+        or c == 0x0B
     )
 
 

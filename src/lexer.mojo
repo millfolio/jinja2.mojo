@@ -19,7 +19,7 @@ comptime SEG_OUTPUT: UInt8 = 1
 comptime SEG_STMT: UInt8 = 2
 
 
-struct Segment(Copyable, Movable, ImplicitlyCopyable):
+struct Segment(Copyable, ImplicitlyCopyable, Movable):
     var kind: UInt8
     var text: String  # literal text, or the inner expression/statement source
     var line: Int
@@ -38,7 +38,7 @@ comptime _RAW_STMT: UInt8 = 2
 comptime _RAW_COMMENT: UInt8 = 3
 
 
-struct _Raw(Copyable, Movable, ImplicitlyCopyable):
+struct _Raw(Copyable, ImplicitlyCopyable, Movable):
     var kind: UInt8
     var text: String
     var strip_before: Bool
@@ -109,10 +109,14 @@ def tokenize_template(source: String) raises -> List[Segment]:
     var line = 1
 
     while pos < n:
-        var is_open = pos + 1 < n and b[pos] == _b("{") and (
-            b[pos + 1] == _b("{")
-            or b[pos + 1] == _b("%")
-            or b[pos + 1] == _b("#")
+        var is_open = (
+            pos + 1 < n
+            and b[pos] == _b("{")
+            and (
+                b[pos + 1] == _b("{")
+                or b[pos + 1] == _b("%")
+                or b[pos + 1] == _b("#")
+            )
         )
         if not is_open:
             if b[pos] == UInt8(0x0A):
@@ -176,9 +180,7 @@ def tokenize_template(source: String) raises -> List[Segment]:
             p += 1
 
         if inner_end < 0:
-            raise Error(
-                "unclosed tag at line " + String(open_line)
-            )
+            raise Error("unclosed tag at line " + String(open_line))
 
         var inner = _take(b, inner_start, inner_end)
         var rkind = _RAW_OUTPUT
@@ -186,9 +188,7 @@ def tokenize_template(source: String) raises -> List[Segment]:
             rkind = _RAW_STMT
         elif marker == _b("#"):
             rkind = _RAW_COMMENT
-        raws.append(
-            _Raw(rkind, inner^, strip_before, strip_after, open_line)
-        )
+        raws.append(_Raw(rkind, inner^, strip_before, strip_after, open_line))
         pos = after
         text_start = after
 
@@ -230,7 +230,7 @@ comptime T_OP: UInt8 = 3
 comptime T_EOF: UInt8 = 4
 
 
-struct ExprToken(Copyable, Movable, ImplicitlyCopyable):
+struct ExprToken(Copyable, ImplicitlyCopyable, Movable):
     var kind: UInt8
     var sval: String
     var ival: Int

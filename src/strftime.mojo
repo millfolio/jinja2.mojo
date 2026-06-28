@@ -11,16 +11,36 @@ from json import _b, bytes_to_string
 
 def _mon_abbr(m: Int) raises -> String:
     var names = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
     ]
     return names[m - 1]
 
 
 def _mon_full(m: Int) raises -> String:
     var names = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
     ]
     return names[m - 1]
 
@@ -32,7 +52,12 @@ def _day_abbr(w: Int) raises -> String:
 
 def _day_full(w: Int) raises -> String:
     var names = [
-        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
         "Saturday",
     ]
     return names[w]

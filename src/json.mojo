@@ -38,13 +38,18 @@ def _utf8_decode(b: List[UInt8], i: Int) -> Tuple[Int, Int]:
         var cp = (c0 & 0x1F) << 6 | (Int(b[i + 1]) & 0x3F)
         return (cp, i + 2)
     if c0 >> 4 == 0b1110:
-        var cp = (c0 & 0x0F) << 12 | (Int(b[i + 1]) & 0x3F) << 6 | (
-            Int(b[i + 2]) & 0x3F
+        var cp = (
+            (c0 & 0x0F) << 12
+            | (Int(b[i + 1]) & 0x3F) << 6
+            | (Int(b[i + 2]) & 0x3F)
         )
         return (cp, i + 3)
-    var cp = (c0 & 0x07) << 18 | (Int(b[i + 1]) & 0x3F) << 12 | (
-        Int(b[i + 2]) & 0x3F
-    ) << 6 | (Int(b[i + 3]) & 0x3F)
+    var cp = (
+        (c0 & 0x07) << 18
+        | (Int(b[i + 1]) & 0x3F) << 12
+        | (Int(b[i + 2]) & 0x3F) << 6
+        | (Int(b[i + 3]) & 0x3F)
+    )
     return (cp, i + 4)
 
 
@@ -180,8 +185,10 @@ struct _JsonParser(Copyable, Movable):
         var is_float = False
         while self.i < len(self.b):
             var ch = Int(self.b[self.i])
-            if ch == ord("-") or ch == ord("+") or (
-                ch >= ord("0") and ch <= ord("9")
+            if (
+                ch == ord("-")
+                or ch == ord("+")
+                or (ch >= ord("0") and ch <= ord("9"))
             ):
                 self.i += 1
             elif ch == ord(".") or ch == ord("e") or ch == ord("E"):
@@ -298,8 +305,8 @@ def _json_string(s: String, mut out: List[UInt8]):
             out.append(_b("r"))
         elif cp < 0x20:
             _emit_u(cp, out)
-        elif cp == ord("<") or cp == ord(">") or cp == ord("&") or cp == ord(
-            "'"
+        elif (
+            cp == ord("<") or cp == ord(">") or cp == ord("&") or cp == ord("'")
         ):
             _emit_u(cp, out)  # jinja HTML-safe escaping
         elif cp < 0x80:
